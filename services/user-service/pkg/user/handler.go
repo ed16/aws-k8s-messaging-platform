@@ -2,16 +2,17 @@ package user
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"strconv"
 )
 
 type User struct {
-	UserID    string `json:"user_id"`
 	Name      string `json:"name"`
 	CreatedAt string `json:"created_at"`
 }
 
-var userStore = make(map[string]User)
+var userStore []User
 
 func CreateUser(w http.ResponseWriter, r *http.Request) {
 	var user User
@@ -21,19 +22,36 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userStore[user.Name] = user
+	userStore = append(userStore, user)
 
 	w.WriteHeader(http.StatusOK)
+	fmt.Println("User created. user.Name:", user.Name)
 }
 
 func GetUser(w http.ResponseWriter, r *http.Request) {
-	name := r.URL.Query().Get("name")
+	var user User
+	// name := r.URL.Query().Get("name")
 
-	user, ok := userStore[name]
-	if !ok {
+	// if name != "" {
+	// 	var ok bool
+	// 	user, ok = userStore[name]
+	// 	if !ok {
+	// 		http.Error(w, "User not found", http.StatusNotFound)
+	// 		return
+	// 	}
+	// }
+	id := r.URL.Query().Get("id")
+	i, err := strconv.Atoi(id)
+	if err != nil {
+		http.Error(w, "ID is not valid", http.StatusNotFound)
+		return
+	}
+	if i < 0 || i > len(userStore)-1 {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
+	user = userStore[i]
 
 	json.NewEncoder(w).Encode(user)
+	fmt.Println("User requested: ", i, user)
 }
