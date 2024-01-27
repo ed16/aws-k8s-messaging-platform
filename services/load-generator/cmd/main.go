@@ -11,5 +11,5 @@ func main() {
 
 	// Start the web server and handle API requests
 	http.HandleFunc("/", api.HandleRequests)
-	log.Fatal(http.ListenAndServe("localhost:8080", nil))
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
