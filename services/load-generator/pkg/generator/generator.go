@@ -11,8 +11,8 @@ import (
 )
 
 var (
-	userServiceURL    = "http://localhost:8081/get" // ?name=John%20Doe
-	messageServiceURL = "http://localhost:8081/create"
+	userServiceURL    = "http://user-service:8081/get" // ?name=John%20Doe
+	messageServiceURL = "http://user-service:8081/create"
 )
 
 func generateRandomName() string {

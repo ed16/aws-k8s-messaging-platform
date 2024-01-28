@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+  load-generator:
+    build:
+      context: .
+      dockerfile: services/load-generator/Dockerfile
+    ports:
+      - "8080:8080"
+    networks:
+      - custom-network
+
+  user-service:
+    build:
+      context: .
+      dockerfile: services/user-service/Dockerfile
+    networks:
+      - custom-network
+
+networks:
+  custom-network:
+    driver: bridge
