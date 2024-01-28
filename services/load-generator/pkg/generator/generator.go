@@ -11,8 +11,7 @@ import (
 )
 
 var (
-	userServiceURL    = "http://user-service:8081/get" // ?name=John%20Doe
-	messageServiceURL = "http://user-service:8081/create"
+	userServiceURL = "http://user-service.default.svc.cluster.local:80"
 )
 
 func generateRandomName() string {
@@ -36,12 +35,13 @@ func createUser(name string) error {
 		return err
 	}
 
-	_, err = http.Post(messageServiceURL, "application/json", bytes.NewBuffer(jsonData))
+	fullURL := userServiceURL + "/create"
+	_, err = http.Post(fullURL, "application/json", bytes.NewBuffer(jsonData))
 	return err
 }
 
 func getUserByID(id int) (*http.Response, error) {
-	fullURL := userServiceURL + "?id=" + strconv.Itoa(id)
+	fullURL := userServiceURL + "/get?id=" + strconv.Itoa(id)
 	return http.Get(fullURL)
 }
 
