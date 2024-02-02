@@ -1,5 +1,5 @@
 # Start from the latest golang base image
-FROM golang:1.21 as builder
+FROM golang:1.21.6 as builder
 
 # Set the Current Working Directory inside the container
 WORKDIR /app
@@ -19,7 +19,7 @@ COPY services/load-generator ./services/load-generator
 RUN CGO_ENABLED=0 GOOS=linux go build -o load-generator ./services/load-generator/cmd
 
 ######## Start a new stage from scratch #######
-FROM alpine:latest  
+FROM alpine:3.19.1  
 
 RUN apk --no-cache add ca-certificates
 
