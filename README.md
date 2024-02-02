@@ -88,6 +88,13 @@ Project structure:
 └── README.md
 
 
+## Learning path:
+k8s:
+    implement ingress
+
+    implement local and cloud volume. Use persistentVolumeClaim
+    deploy stateful services for DB: manually and using operators
+
 ## Useful notes:
 
 Test user-service at localhost:
@@ -98,11 +105,22 @@ curl http://localhost:8081/get?id=1
 
 Build Docker containers:
 cd aws-k8s-messaging-platform
-docker build -t load-generator -f services/load-generator/Dockerfile .
 docker run -p 8080:8080 load-generator
 
-docker build -t user-service -f services/user-service/Dockerfile .
+docker build -t ed16/aws-k8s-messaging-platform:user-service-v0.1 -f services/user-service/Dockerfile .
+docker build -t ed16/aws-k8s-messaging-platform:load-generator-v0.1 -f services/load-generator/Dockerfile .
+docker push ed16/aws-k8s-messaging-platform:user-service-v0.1
+docker push ed16/aws-k8s-messaging-platform:load-generator-v0.1
+
 
 Docker composer:
 docker-compose build
 docker-compose up
+
+
+## TODO
+
+1. Write 2 go services
+2. Wrap into docker containers
+3. Deploy into minikube
+4. Test in minikube
