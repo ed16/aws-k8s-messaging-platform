@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: load-generator
-        image: ed16/aws-k8s-messaging-platform:load-generator-v0.1
+        image: ed16/aws-k8s-messaging-platform:load-generator-v0.2
         ports:
         - containerPort: 8080
         resources:
@@ -30,9 +30,7 @@ spec:
           # Example environment variable, you can add more or remove if not needed
           - name: SOME_ENV_VARIABLE
             value: ""
-
 ---
-
 apiVersion: v1
 kind: Service
 metadata:
@@ -42,6 +40,6 @@ spec:
     app: load-generator
   ports:
     - protocol: TCP
-      port: 80
+      port: 8080
       targetPort: 8080
   type: LoadBalancer
