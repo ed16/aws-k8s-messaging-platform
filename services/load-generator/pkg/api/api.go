@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -8,6 +9,7 @@ import (
 )
 
 func HandleRequests(w http.ResponseWriter, r *http.Request) {
+	fmt.Println(r.URL.Path)
 	switch r.URL.Path {
 	case "/start":
 		// Start the load generation in a separate goroutine
