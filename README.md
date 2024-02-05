@@ -90,10 +90,12 @@ Project structure:
 
 ## Learning path:
 k8s:
-    implement ingress
+    +implement ingress
 
     implement local and cloud volume. Use persistentVolumeClaim
     deploy stateful services for DB: manually and using operators
+
+    Use Helm charts when the landscape become too complex
 
 ## Useful notes:
 
@@ -116,6 +118,9 @@ docker push ed16/aws-k8s-messaging-platform:load-generator-v0.1
 Docker composer:
 docker-compose build
 docker-compose up
+
+### Prometheus
+minikube service prometheus-service -n prometheus
 
 
 ## TODO

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+
+	"github.com/ed16/aws-k8s-messaging-platform/services/user-service/pkg/metrics"
 )
 
 type User struct {
@@ -26,6 +28,8 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	fmt.Println("User created. user.Name:", user.Name)
+	// Increment the counter for user-service/create endpoint
+	metrics.HTTPCreateRequestsTotal.Inc()
 }
 
 func GetUser(w http.ResponseWriter, r *http.Request) {
@@ -54,4 +58,5 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(user)
 	fmt.Println("User requested: ", i, user)
+	metrics.HTTPGetRequestsTotal.Inc()
 }
