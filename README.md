@@ -122,6 +122,8 @@ docker-compose up
 ### Prometheus
 minikube service prometheus-service -n prometheus
 
+kubectl rollout restart deployment prometheus-deployment -n prometheus
+
 
 ## TODO
 
