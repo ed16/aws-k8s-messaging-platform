@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	userServiceURL = "http://user-service.default.svc.cluster.local:80"
+	userServiceURL = "http://user-service.default.svc.cluster.local:8080"
 )
 
 func generateRandomName() string {
