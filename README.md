@@ -106,28 +106,33 @@ curl http://localhost:8081/get?id=1
 
 
 Build Docker containers:
-cd aws-k8s-messaging-platform
-docker run -p 8080:8080 load-generator
 
-docker build -t ed16/aws-k8s-messaging-platform:user-service-v0.1 -f services/user-service/Dockerfile .
+docker build -t ed16/aws-k8s-messaging-platform:user-service-v0.3 -f services/user-service/Dockerfile .
 docker build -t ed16/aws-k8s-messaging-platform:load-generator-v0.1 -f services/load-generator/Dockerfile .
 docker push ed16/aws-k8s-messaging-platform:user-service-v0.1
 docker push ed16/aws-k8s-messaging-platform:load-generator-v0.1
 
-
-Docker composer:
-docker-compose build
-docker-compose up
+minikube ssh -p minikube
 
 ### Prometheus
 minikube service prometheus-service -n prometheus
 
 kubectl rollout restart deployment prometheus-deployment -n prometheus
 
+Prometheus server URL for Grafana:
+http://prometheus-service.prometheus.svc.cluster.local:9090
 
 ## TODO
 
-1. Write 2 go services
-2. Wrap into docker containers
-3. Deploy into minikube
-4. Test in minikube
+1. +Write 2 go services
+2. +Wrap into docker containers
+3. +Deploy into minikube
+4. +Test in minikube
+
+
+## Deploy from zero
+minikube start
+find k8s -name '*.yaml' | xargs -I {} kubectl apply -f {}
+kubectl get all
+kubectl get all -n prometheus
+kubectl get all -n grafana
