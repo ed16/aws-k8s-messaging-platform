@@ -9,13 +9,6 @@ spec:
     - host: minikube.local
       http:
         paths:
-          - path: /grafana(/|$)(.*)
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                name: grafana
-                port:
-                  number: 3000
           - path: /load-generator(/|$)(.*)
             pathType: ImplementationSpecific
             backend:
