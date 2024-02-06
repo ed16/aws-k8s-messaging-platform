@@ -108,9 +108,9 @@ curl http://localhost:8081/get?id=1
 Build Docker containers:
 
 docker build -t ed16/aws-k8s-messaging-platform:user-service-v0.3 -f services/user-service/Dockerfile .
-docker build -t ed16/aws-k8s-messaging-platform:load-generator-v0.1 -f services/load-generator/Dockerfile .
-docker push ed16/aws-k8s-messaging-platform:user-service-v0.1
-docker push ed16/aws-k8s-messaging-platform:load-generator-v0.1
+docker build -t ed16/aws-k8s-messaging-platform:load-generator-v0.3 -f services/load-generator/Dockerfile .
+docker push ed16/aws-k8s-messaging-platform:user-service-v0.3
+docker push ed16/aws-k8s-messaging-platform:load-generator-v0.3
 
 minikube ssh -p minikube
 
@@ -128,6 +128,7 @@ http://prometheus-service.prometheus.svc.cluster.local:9090
 2. +Wrap into docker containers
 3. +Deploy into minikube
 4. +Test in minikube
+5. Fix minikube tunnel
 
 
 ## Deploy from zero
