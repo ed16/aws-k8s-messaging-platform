@@ -28,3 +28,6 @@ data:
       - job_name: 'kube-state-metrics'
         static_configs:
           - targets: ['kube-state-metrics.prometheus.svc.cluster.local:8080']
+      - job_name: 'user-service'
+        static_configs:
+          - targets: ['user-service.default.svc.cluster.local:8080']
