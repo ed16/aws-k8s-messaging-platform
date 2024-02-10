@@ -128,11 +128,30 @@ http://prometheus-service.prometheus.svc.cluster.local:9090
 2. +Wrap into docker containers
 3. +Deploy into minikube
 4. +Test in minikube
-5. Fix minikube tunnel
+5. +Fix minikube tunnel
+6. +Deploy prometheus and Grafana
+7. +Collect custom metrics - user creation rate
+8. +Display custom metrics in Grafana
+9. Implement rate control function with autoscaling
+   1.  
+10. Web UI 
+   1.  to control the rate of user creation and reading users
+   2.  Display reat rate
+   3.  Display the avarage response time
+11. Each new commit to the main branch - 
+    1.  Run unit tests
+    2.  Build containers
+    3.  Run integrational tests
+    4.  Deploy to k8s (local minikube?)
+12. Autoscaling of the user-service when CPU is higher then something or responce time is higher then something
+13. Autoscaling of the load-generator when it cannot give the desired rate
+14. Implement the queue for the user creation? Probably for some other process
+15. 
 
 
 ## Deploy from zero
 minikube start
+minikube addons enable ingress
 find k8s -name '*.yaml' | xargs -I {} kubectl apply -f {}
 kubectl get all
 kubectl get all -n prometheus

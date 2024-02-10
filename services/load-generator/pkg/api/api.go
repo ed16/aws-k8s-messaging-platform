@@ -1,28 +1,17 @@
 package api
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/ed16/aws-k8s-messaging-platform/services/load-generator/pkg/generator"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-func HandleRequests(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(r.URL.Path)
-	switch r.URL.Path {
-	case "/start":
-		// Start the load generation in a separate goroutine
-		go func() {
-			err := generator.Start()
-			if err != nil {
-				http.Error(w, "Failed to start load generator", http.StatusInternalServerError)
-				log.Fatalf("Failed to start load generator: %v", err)
-			}
-		}()
-	case "/stop":
-		//generator.Stop()
-	default:
-		http.Error(w, "Not found", http.StatusNotFound)
-	}
+func HandleRequests() {
+	log.Println("Registering handlers...")
+	http.HandleFunc("/SetCreateUsersRate", generator.SetCreateUsersRate)
+	http.HandleFunc("/SetGetUsersRate", generator.SetGetUsersRate)
+	http.Handle("/metrics", promhttp.Handler())
+	log.Println("Handlers registered successfully.")
 }
