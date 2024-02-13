@@ -9,41 +9,33 @@ import (
 	"github.com/ed16/aws-k8s-messaging-platform/services/user-service/pkg/metrics"
 )
 
-type User struct {
+type user struct {
 	Name      string `json:"name"`
 	CreatedAt string `json:"created_at"`
 }
 
-var userStore []User
+var userStore []user
 
+// CreateUser creates the user.
 func CreateUser(w http.ResponseWriter, r *http.Request) {
-	var user User
-	err := json.NewDecoder(r.Body).Decode(&user)
+	var newUser user
+	err := json.NewDecoder(r.Body).Decode(&newUser)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	userStore = append(userStore, user)
+	userStore = append(userStore, newUser)
 
 	w.WriteHeader(http.StatusOK)
-	fmt.Println("User created. user.Name:", user.Name)
+	fmt.Println("User created. user.Name:", newUser.Name)
 	// Increment the counter for user-service/create endpoint
 	metrics.HTTPCreateRequestsTotal.Inc()
 }
 
+// GetUser get the user.
 func GetUser(w http.ResponseWriter, r *http.Request) {
-	var user User
-	// name := r.URL.Query().Get("name")
-
-	// if name != "" {
-	// 	var ok bool
-	// 	user, ok = userStore[name]
-	// 	if !ok {
-	// 		http.Error(w, "User not found", http.StatusNotFound)
-	// 		return
-	// 	}
-	// }
+	var requestedUser user
 	id := r.URL.Query().Get("id")
 	i, err := strconv.Atoi(id)
 	if err != nil {
@@ -54,9 +46,13 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
-	user = userStore[i]
+	requestedUser = userStore[i]
 
-	json.NewEncoder(w).Encode(user)
-	fmt.Println("User requested: ", i, user)
+	err = json.NewEncoder(w).Encode(requestedUser)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	fmt.Println("User requested: ", i, requestedUser)
 	metrics.HTTPGetRequestsTotal.Inc()
 }

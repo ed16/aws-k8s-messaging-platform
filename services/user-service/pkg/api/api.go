@@ -8,6 +8,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
+// HandleRequests handles HTTP requests.
 func HandleRequests() {
 	log.Println("Registering handlers...")
 	http.HandleFunc("/create", user.CreateUser)

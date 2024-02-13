@@ -5,6 +5,8 @@ import (
 )
 
 var (
-	Ctx    context.Context
+	// Ctx represents the context for the load generator.
+	Ctx context.Context
+	// Cancel represents the cancel function for the load generator context.
 	Cancel context.CancelFunc
 )

@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
-	_ "net/http/pprof"
+	"time"
 
 	"github.com/ed16/aws-k8s-messaging-platform/services/user-service/pkg/api"
 )
@@ -11,7 +11,20 @@ import (
 func main() {
 	api.HandleRequests()
 	go func() {
-		log.Println(http.ListenAndServe(":6060", nil))
+		server := &http.Server{
+			Addr:         ":6060",
+			ReadTimeout:  5 * time.Second,
+			WriteTimeout: 10 * time.Second,
+		}
+		log.Println(server.ListenAndServe())
 	}()
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	go func() {
+		server := &http.Server{
+			Addr:         ":8080",
+			ReadTimeout:  5 * time.Second,
+			WriteTimeout: 10 * time.Second,
+		}
+		log.Println(server.ListenAndServe())
+	}()
+	select {}
 }

@@ -2,16 +2,14 @@ package generator
 
 import (
 	"bytes"
-	"context"
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
 	"log"
-	"math/rand"
+	"math/big"
 	"net/http"
 	"strconv"
 	"time"
-
-	local "github.com/ed16/aws-k8s-messaging-platform/services/load-generator/pkg/context"
 )
 
 var (
@@ -21,6 +19,7 @@ var (
 	actualCreateRate int
 )
 
+// SetCreateUsersRate sets the rate for creating users.
 func SetCreateUsersRate(w http.ResponseWriter, r *http.Request) {
 	var err error
 	createUsersRate, err = strconv.Atoi(r.URL.Query().Get("rate"))
@@ -29,15 +28,17 @@ func SetCreateUsersRate(w http.ResponseWriter, r *http.Request) {
 		log.Fatalf("Rate must be an integer: %v", err)
 	}
 
-	err = userCreator(local.Ctx)
-	if err != nil {
-		http.Error(w, "Failed to start load generator", http.StatusInternalServerError)
-		log.Fatalf("Failed to start load generator: %v", err)
-	}
+	userCreator()
 
 	w.WriteHeader(http.StatusOK)
 }
 
+// SetGetUsersRate sets the rate at which users are generated and fetched.
+// It takes an HTTP response writer and request as parameters.
+// The rate is extracted from the query parameter "rate" in the request URL.
+// It starts a goroutine to asynchronously execute the userGetter function.
+// If an error occurs during the execution, it returns an HTTP 500 Internal Server Error
+// and logs the error message.
 func SetGetUsersRate(w http.ResponseWriter, r *http.Request) {
 	var err error
 	getUsersRate, err = strconv.Atoi(r.URL.Query().Get("rate"))
@@ -58,10 +59,17 @@ func generateRandomName() string {
 		"Paula", "Quincy", "Rachel", "Steve", "Tina", // And more
 		"Umar", "Violet", "William", "Xena", "Yasmin", "Zach", // Completing the list
 	}
-	return names[rand.Intn(len(names))]
+
+	n, err := rand.Int(rand.Reader, big.NewInt(int64(len(names))))
+	if err != nil {
+		// handle error
+		return ""
+	}
+
+	return names[n.Int64()]
 }
 
-func createUser(name string) error {
+func createUser(name, fullURL string) error {
 	data := map[string]string{
 		"name":       name,
 		"created_at": time.Now().Format("2006-01-02"),
@@ -71,17 +79,16 @@ func createUser(name string) error {
 		return err
 	}
 
-	fullURL := userServiceURL + "/create"
-	_, err = http.Post(fullURL, "application/json", bytes.NewBuffer(jsonData))
+	_, err = http.Post(fullURL, "application/json", bytes.NewBuffer(jsonData)) //nolint
 	return err
 }
 
 func getUserByID(id int) (*http.Response, error) {
 	fullURL := userServiceURL + "/get?id=" + strconv.Itoa(id)
-	return http.Get(fullURL)
+	return http.Get(fullURL) //nolint
 }
 
-func userCreator(ctx context.Context) error {
+func userCreator() {
 	log.Println("Load generation rate is set to ", createUsersRate)
 
 	ticker := time.NewTicker(time.Second)
@@ -91,7 +98,8 @@ func userCreator(ctx context.Context) error {
 	go func() {
 		for createUsersRate > 0 {
 			name := generateRandomName()
-			err := createUser(name)
+			fullURL := userServiceURL + "/create"
+			err := createUser(name, fullURL)
 			if err != nil {
 				errors <- err
 			}
@@ -122,54 +130,15 @@ func userCreator(ctx context.Context) error {
 			}
 		}
 	}()
-
-	// go func() {
-	// 	for {
-	// 		select {
-	// 		case <-ticker.C:
-	// 			// Adjust the number of goroutines based on actualCreateRate
-	// 			for i := 0; i < createUsersRate; i++ {
-	// 				go func() {
-	// 					name := generateRandomName()
-	// 					err := createUser(name)
-	// 					if err != nil {
-	// 						errors <- err
-	// 					}
-	// 				}()
-	// 			}
-	// 		case <-quit:
-	// 			ticker.Stop()
-	// 			return
-	// 		case <-ctx.Done():
-	// 			ticker.Stop()
-	// 			close(quit)
-	// 			return
-	// 		}
-	// 	}
-	// }()
-
-	// // Listen for the first error
-	// go func() {
-	// 	for err := range errors {
-	// 		log.Printf("Error creating user: %v\n", err)
-	// 		close(quit) // Stop the load generation on first error
-	// 		break
-	// 	}
-	// }()
-
-	return nil
 }
 
 func userGetter() error {
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < getUsersRate; i++ {
 		resp, err := getUserByID(i)
 		if err != nil {
 			return err
-		} else {
-			fmt.Println(resp)
 		}
-
-		//time.Sleep(1 * time.Second)
+		fmt.Println(resp)
 	}
 	return nil
 }
