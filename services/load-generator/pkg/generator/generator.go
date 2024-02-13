@@ -28,13 +28,14 @@ func SetCreateUsersRate(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Rate must be an integer", http.StatusInternalServerError)
 		log.Fatalf("Rate must be an integer: %v", err)
 	}
-	go func() {
-		err = userCreator(local.Ctx)
-		if err != nil {
-			http.Error(w, "Failed to start load generator", http.StatusInternalServerError)
-			log.Fatalf("Failed to start load generator: %v", err)
-		}
-	}()
+
+	err = userCreator(local.Ctx)
+	if err != nil {
+		http.Error(w, "Failed to start load generator", http.StatusInternalServerError)
+		log.Fatalf("Failed to start load generator: %v", err)
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func SetGetUsersRate(w http.ResponseWriter, r *http.Request) {
