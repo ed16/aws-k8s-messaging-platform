@@ -81,40 +81,23 @@ func getUserByID(id int) (*http.Response, error) {
 }
 
 func userCreator(ctx context.Context) error {
-	if createUsersRate == 0 {
-		log.Println("Load generation stopped as the rate is set to 0")
-		return nil
-	}
-
-	// Update actualCreateRate based on the external API call
-	actualCreateRate = createUsersRate
+	log.Println("Load generation rate is set to ", createUsersRate)
 
 	ticker := time.NewTicker(time.Second)
 	quit := make(chan struct{})
 	errors := make(chan error, 1) // Buffer to prevent blocking
 
 	go func() {
-		for {
-			select {
-			case <-ticker.C:
-				// Adjust the number of goroutines based on actualCreateRate
-				for i := 0; i < actualCreateRate; i++ {
-					go func() {
-						name := generateRandomName()
-						err := createUser(name)
-						if err != nil {
-							errors <- err
-						}
-					}()
-				}
-			case <-quit:
-				ticker.Stop()
-				return
-			case <-ctx.Done():
-				ticker.Stop()
-				close(quit)
-				return
+		for createUsersRate > 0 {
+			name := generateRandomName()
+			err := createUser(name)
+			if err != nil {
+				errors <- err
 			}
+			actualCreateRate++
+		}
+		if createUsersRate == 0 {
+			close(quit)
 		}
 	}()
 
@@ -122,26 +105,58 @@ func userCreator(ctx context.Context) error {
 	go func() {
 		for err := range errors {
 			log.Printf("Error creating user: %v\n", err)
-			close(quit) // Stop the load generation on first error
-			break
 		}
 	}()
 
-	return nil
-}
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				// Adjust the number of goroutines based on actualCreateRate
+				log.Printf("Current rate: %v\r", actualCreateRate)
+				actualCreateRate = 0
+			case <-quit:
+				ticker.Stop()
+				return
+			}
+		}
+	}()
 
-func adjustRate(responseTime time.Duration, ticker **time.Ticker, manageRate func() time.Duration) {
-	targetResponseTime := time.Second // Adjust this based on your needs
-	if responseTime > targetResponseTime && actualCreateRate > 1 {
-		// Slow down, but do not decrease below 1
-		actualCreateRate--
-	} else if responseTime < targetResponseTime && actualCreateRate < createUsersRate {
-		// Speed up, but do not exceed the target rate
-		actualCreateRate++
-	}
-	// Adjust the ticker to the new rate
-	newDuration := manageRate()
-	*ticker = time.NewTicker(newDuration)
+	// go func() {
+	// 	for {
+	// 		select {
+	// 		case <-ticker.C:
+	// 			// Adjust the number of goroutines based on actualCreateRate
+	// 			for i := 0; i < createUsersRate; i++ {
+	// 				go func() {
+	// 					name := generateRandomName()
+	// 					err := createUser(name)
+	// 					if err != nil {
+	// 						errors <- err
+	// 					}
+	// 				}()
+	// 			}
+	// 		case <-quit:
+	// 			ticker.Stop()
+	// 			return
+	// 		case <-ctx.Done():
+	// 			ticker.Stop()
+	// 			close(quit)
+	// 			return
+	// 		}
+	// 	}
+	// }()
+
+	// // Listen for the first error
+	// go func() {
+	// 	for err := range errors {
+	// 		log.Printf("Error creating user: %v\n", err)
+	// 		close(quit) // Stop the load generation on first error
+	// 		break
+	// 	}
+	// }()
+
+	return nil
 }
 
 func userGetter() error {
