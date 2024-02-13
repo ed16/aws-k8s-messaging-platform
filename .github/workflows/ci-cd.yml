@@ -56,12 +56,12 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
-          tags: ${{ github.actor }}/aws-k8s-messaging-platform:load-generator:latest
+          tags: ${{ github.actor }}/aws-k8s-messaging-platform/load-generator:latest
           context: "{{defaultContext}}:services/load-generator"
       -
         name: Build and push user-service 
         uses: docker/build-push-action@v5
         with:
           push: true
-          tags: ${{ github.actor }}/aws-k8s-messaging-platform:user-service:latest
+          tags: ${{ github.actor }}/aws-k8s-messaging-platform/user-service:latest
           context: "{{defaultContext}}:services/user-service"
