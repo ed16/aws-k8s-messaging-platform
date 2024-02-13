@@ -1,0 +1,59 @@
+name: build
+
+on:
+  push:
+    branches: []
+  pull_request:
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: set up go 1.21
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.21"
+        id: go
+
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: build and test
+        run: |
+          go test -v -timeout=100s -covermode=count -coverprofile=$GITHUB_WORKSPACE/profile.cov_tmp ./...
+          cat $GITHUB_WORKSPACE/profile.cov_tmp | grep -v "mocks" | grep -v "_mock" > $GITHUB_WORKSPACE/profile.cov
+        working-directory: services
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
+
+      - name: install goveralls
+        run: |
+          curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $GITHUB_WORKSPACE v1.45.0
+          GO111MODULE=off go get -u -v github.com/mattn/goveralls
+
+      - name: submit coverage
+        run: $(go env GOPATH)/bin/goveralls -service="github" -coverprofile=$GITHUB_WORKSPACE/profile.cov
+        env:
+          COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
+      - name: build and deploy master image to dockerhub
+        if: ${{ github.ref == 'refs/heads/master' }}
+        env:
+            DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
+            USERNAME: ${{ github.actor }}
+            GITHUB_SHA: ${{ github.sha}}
+            GITHUB_REF: ${{ github.ref}}
+        run: |
+            ref="$(echo ${GITHUB_REF} | cut -d'/' -f3)"
+            echo GITHUB_REF - $ref
+            echo ${DOCKER_HUB_TOKEN} | docker login -u ${USERNAME} --password-stdin
+            docker build \
+                --build-arg CI=github --build-arg GITHUB_SHA=${GITHUB_SHA} --build-arg GIT_BRANCH=${ref} \
+                -t ${USERNAME}/aws-k8s-messaging-platform:${ref} -t ${USERNAME}/aws-k8s-messaging-platform:latest .
+            docker push ${USERNAME}/aws-k8s-messaging-platform:${ref} && docker push ${USERNAME}/aws-k8s-messaging-platform:latest
