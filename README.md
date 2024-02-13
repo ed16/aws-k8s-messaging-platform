@@ -107,10 +107,10 @@ curl http://localhost:8081/get?id=1
 
 Build Docker containers:
 
-docker build -t ed16/aws-k8s-messaging-platform-user-service:latest -f services/user-service/Dockerfile .
-docker build -t ed16/aws-k8s-messaging-platform-load-generator:latest -f services/load-generator/Dockerfile .
-docker push ed16/aws-k8s-messaging-platform-user-service:latest
-docker push ed16/aws-k8s-messaging-platform-load-generator:latest
+docker build -t ed16/aws-k8s-messaging-platform:user-service-latest -f services/user-service/Dockerfile .
+docker build -t ed16/aws-k8s-messaging-platform:load-generator-latest -f services/load-generator/Dockerfile .
+docker push ed16/aws-k8s-messaging-platform:user-service-latest
+docker push ed16/aws-k8s-messaging-platform:load-generator-latest
 
 minikube ssh -p minikube
 

@@ -56,7 +56,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
-          tags: ${{ github.actor }}/aws-k8s-messaging-platform-load-generator:latest
+          tags: ${{ github.actor }}/aws-k8s-messaging-platform:load-generator-latest
           context: .
           file: ./services/load-generator/Dockerfile
       -
@@ -64,6 +64,6 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
-          tags: ${{ github.actor }}/aws-k8s-messaging-platform-user-service:latest
+          tags: ${{ github.actor }}/aws-k8s-messaging-platform:user-service-latest
           context: .
           file: ./services/user-service/Dockerfile
