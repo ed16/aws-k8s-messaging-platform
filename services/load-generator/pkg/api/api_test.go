@@ -8,7 +8,7 @@ import (
 
 func TestHandleRequests(t *testing.T) {
 	// Create a test request to simulate incoming requests
-	req, err := http.NewRequest("GET", "/SetCreateUsersRate", nil)
+	req, err := http.NewRequest("GET", "/SetCreateUsersRate?rate=0", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
