@@ -20,8 +20,12 @@ func main() {
 			ReadTimeout:  5 * time.Second,
 			WriteTimeout: 10 * time.Second,
 		}
+		// Set the server handler
+		server.Handler = http.DefaultServeMux
+
 		log.Fatal(server.ListenAndServe())
 	}()
 
 	api.HandleRequests()
+	select {}
 }
