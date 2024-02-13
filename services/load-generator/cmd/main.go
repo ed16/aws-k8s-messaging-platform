@@ -11,7 +11,7 @@ import (
 
 func main() {
 	local.Ctx, local.Cancel = context.WithCancel(context.Background())
-	api.HandleRequests()
 	defer local.Cancel()
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	api.HandleRequests()
+	log.Fatal(http.ListenAndServe(":8081", nil))
 }
