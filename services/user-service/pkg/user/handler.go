@@ -28,7 +28,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	userStore = append(userStore, newUser)
 
 	w.WriteHeader(http.StatusOK)
-	fmt.Println("User created. user.Name:", newUser.Name)
+
 	// Increment the counter for user-service/create endpoint
 	metrics.HTTPCreateRequestsTotal.Inc()
 }
