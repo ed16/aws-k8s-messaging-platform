@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: load-generator
-        image: ed16/aws-k8s-messaging-platform:load-generator-v0.3
+        image: ed16/aws-k8s-messaging-platform:load-generator-latest
         ports:
         - containerPort: 8080
         resources:
