@@ -25,10 +25,10 @@ var (
 func createCustomClient() *http.Client {
 	var netTransport = &http.Transport{
 		Dial: (&net.Dialer{
-			Timeout:   10 * time.Second,
-			KeepAlive: 30 * time.Second,
+			Timeout: 10 * time.Second,
 		}).Dial,
 		MaxIdleConns:        100,
+		MaxConnsPerHost:     100,
 		MaxIdleConnsPerHost: 100,
 		IdleConnTimeout:     90 * time.Second,
 	}
@@ -150,8 +150,14 @@ func createUser(name string) error {
 		return err
 	}
 	if resp.Body != nil {
-		io.Copy(io.Discard, resp.Body)
-		resp.Body.Close()
+		_, err := io.Copy(io.Discard, resp.Body)
+		if err != nil {
+			return err
+		}
+		err = resp.Body.Close()
+		if err != nil {
+			return err
+		}
 	}
 
 	createUsersRate.Add(1)
