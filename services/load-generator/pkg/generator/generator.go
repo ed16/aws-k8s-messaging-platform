@@ -5,71 +5,131 @@ import (
 	"crypto/rand"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"math/big"
+	"net"
 	"net/http"
 	"strconv"
+	"sync/atomic"
 	"time"
 )
 
 var (
-	userServiceURL   = "http://user-service.default.svc.cluster.local:8080"
-	createUsersRate  int
-	getUsersRate     int
-	actualCreateRate int
+	userServiceURL  = "http://user-service.default.svc.cluster.local:8080"
+	customClient    = createCustomClient()
+	createUsersRate atomic.Int64
+	connectionsNum  atomic.Int64
 )
 
-// SetCreateUsersRate sets the rate for creating users.
-func SetCreateUsersRate(w http.ResponseWriter, r *http.Request) {
-	var err error
-	createUsersRate, err = strconv.Atoi(r.URL.Query().Get("rate"))
-	if err != nil {
-		http.Error(w, "Rate must be an integer", http.StatusInternalServerError)
-		log.Fatalf("Rate must be an integer: %v", err)
+func createCustomClient() *http.Client {
+	var netTransport = &http.Transport{
+		Dial: (&net.Dialer{
+			Timeout:   10 * time.Second,
+			KeepAlive: 30 * time.Second,
+		}).Dial,
+		MaxIdleConns:        100,
+		MaxIdleConnsPerHost: 100,
+		IdleConnTimeout:     90 * time.Second,
 	}
+	return &http.Client{
+		Timeout:   time.Second * 10,
+		Transport: netTransport,
+	}
+}
 
-	userCreator()
+// SetCreateUsersConnections sets the rate at which users are created.
+func SetCreateUsersConnections(w http.ResponseWriter, r *http.Request) {
+	var err error
+	c, err := strconv.Atoi(r.URL.Query().Get("c"))
 
+	if err != nil {
+		http.Error(w, "Number of connections must be an integer", http.StatusInternalServerError)
+		log.Fatalf("Number of connections must be an integer: %v", err)
+	}
+	connectionsNum.Store(int64(c))
+
+	log.Println("\nNumber of connections is set to ", c)
 	w.WriteHeader(http.StatusOK)
 }
 
-// SetGetUsersRate sets the rate at which users are generated and fetched.
-// It takes an HTTP response writer and request as parameters.
-// The rate is extracted from the query parameter "rate" in the request URL.
-// It starts a goroutine to asynchronously execute the userGetter function.
-// If an error occurs during the execution, it returns an HTTP 500 Internal Server Error
-// and logs the error message.
-func SetGetUsersRate(w http.ResponseWriter, r *http.Request) {
-	var err error
-	getUsersRate, err = strconv.Atoi(r.URL.Query().Get("rate"))
+// RunUserCreator runs the user creator.
+func RunUserCreator() {
+	var currentGoroutines atomic.Int64
+
+	// Channel to signal goroutines to stop.
+	stopChan := make(chan struct{})
+
+	// Function to safely start new goroutines.
+	startGoroutines := func(target int64) {
+		for {
+			current := currentGoroutines.Load()
+			if current >= target {
+				return
+			}
+			if currentGoroutines.CompareAndSwap(current, current+1) {
+				go func() {
+					defer currentGoroutines.Add(-1)
+					for {
+						select {
+						case <-stopChan:
+							return
+						default:
+							name := generateRandomName()
+
+							err := createUser(name)
+							if err != nil {
+								log.Printf("Error creating user: %v\n", err)
+							}
+						}
+					}
+				}()
+			}
+		}
+	}
+
 	go func() {
-		err = userGetter()
-		if err != nil {
-			http.Error(w, "Failed to start load generator", http.StatusInternalServerError)
-			log.Fatalf("Failed to start load generator: %v", err)
+		for {
+			target := connectionsNum.Load()
+			current := currentGoroutines.Load()
+
+			if current > target {
+				// Too many goroutines, send stop signals.
+				for i := int64(0); i < current-target; i++ {
+					stopChan <- struct{}{}
+				}
+			} else if current < target {
+				// Not enough goroutines, start more.
+				startGoroutines(target)
+			}
+
+			// Check for adjustments every second.
+			fmt.Printf("\r\033[KCreate user rate: %v", createUsersRate.Load())
+			createUsersRate.Store(0)
+
+			time.Sleep(time.Second)
 		}
 	}()
 }
 
 func generateRandomName() string {
 	names := []string{
-		"Alice", "Bob", "Charlie", "Diana", "Edward", // Original names
-		"Fiona", "George", "Hannah", "Ian", "Julia", // New names
-		"Kevin", "Laura", "Michael", "Nina", "Oscar", // More names
-		"Paula", "Quincy", "Rachel", "Steve", "Tina", // And more
-		"Umar", "Violet", "William", "Xena", "Yasmin", "Zach", // Completing the list
+		"Alice", "Bob", "Charlie", "Diana", "Edward",
+		"Fiona", "George", "Hannah", "Ian", "Julia",
+		"Kevin", "Laura", "Michael", "Nina", "Oscar",
+		"Paula", "Quincy", "Rachel", "Steve", "Tina",
+		"Umar", "Violet", "William", "Xena", "Yasmin",
 	}
 
 	n, err := rand.Int(rand.Reader, big.NewInt(int64(len(names))))
 	if err != nil {
-		// handle error
-		return ""
+		return err.Error()
 	}
 
 	return names[n.Int64()]
 }
 
-func createUser(name, fullURL string) error {
+func createUser(name string) error {
 	data := map[string]string{
 		"name":       name,
 		"created_at": time.Now().Format("2006-01-02"),
@@ -78,67 +138,22 @@ func createUser(name, fullURL string) error {
 	if err != nil {
 		return err
 	}
-
-	_, err = http.Post(fullURL, "application/json", bytes.NewBuffer(jsonData)) //nolint
-	return err
-}
-
-func getUserByID(id int) (*http.Response, error) {
-	fullURL := userServiceURL + "/get?id=" + strconv.Itoa(id)
-	return http.Get(fullURL) //nolint
-}
-
-func userCreator() {
-	log.Println("Load generation rate is set to ", createUsersRate)
-
-	ticker := time.NewTicker(time.Second)
-	quit := make(chan struct{})
-	errors := make(chan error, 1) // Buffer to prevent blocking
-
-	go func() {
-		for createUsersRate > 0 {
-			name := generateRandomName()
-			fullURL := userServiceURL + "/create"
-			err := createUser(name, fullURL)
-			if err != nil {
-				errors <- err
-			}
-			actualCreateRate++
-		}
-		if createUsersRate == 0 {
-			close(quit)
-		}
-	}()
-
-	// Listen for the first error
-	go func() {
-		for err := range errors {
-			log.Printf("Error creating user: %v\n", err)
-		}
-	}()
-
-	go func() {
-		for {
-			select {
-			case <-ticker.C:
-				// Adjust the number of goroutines based on actualCreateRate
-				log.Printf("Current rate: %v\r", actualCreateRate)
-				actualCreateRate = 0
-			case <-quit:
-				ticker.Stop()
-				return
-			}
-		}
-	}()
-}
-
-func userGetter() error {
-	for i := 0; i < getUsersRate; i++ {
-		resp, err := getUserByID(i)
-		if err != nil {
-			return err
-		}
-		fmt.Println(resp)
+	fullURL := userServiceURL + "/create"
+	req, err := http.NewRequest("POST", fullURL, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return err
 	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := customClient.Do(req)
+	if err != nil {
+		return err
+	}
+	if resp.Body != nil {
+		io.Copy(io.Discard, resp.Body)
+		resp.Body.Close()
+	}
+
+	createUsersRate.Add(1)
 	return nil
 }

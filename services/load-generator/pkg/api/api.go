@@ -11,8 +11,7 @@ import (
 // HandleRequests handles incoming HTTP requests.
 func HandleRequests() {
 	log.Println("Registering handlers...")
-	http.HandleFunc("/SetCreateUsersRate", generator.SetCreateUsersRate)
-	http.HandleFunc("/SetGetUsersRate", generator.SetGetUsersRate)
+	http.HandleFunc("/SetCreateUsersConnections", generator.SetCreateUsersConnections)
 	http.Handle("/metrics", promhttp.Handler())
 	log.Println("Handlers registered successfully.")
 }

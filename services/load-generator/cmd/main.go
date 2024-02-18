@@ -8,6 +8,7 @@ import (
 
 	"github.com/ed16/aws-k8s-messaging-platform/services/load-generator/pkg/api"
 	local "github.com/ed16/aws-k8s-messaging-platform/services/load-generator/pkg/context"
+	"github.com/ed16/aws-k8s-messaging-platform/services/load-generator/pkg/generator"
 )
 
 func main() {
@@ -27,5 +28,6 @@ func main() {
 	}()
 
 	api.HandleRequests()
+	go generator.RunUserCreator()
 	select {}
 }
