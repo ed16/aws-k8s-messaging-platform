@@ -115,7 +115,7 @@ docker push ed16/aws-k8s-messaging-platform:load-generator-latest
 minikube ssh -p minikube
 
 find . -type f -name "*.go" -exec sh -c 'echo "File: {}"; echo "----------------"; cat "{}"; echo "\n"' \;
-
+golangci-lint run
 bombardier -c 64 -n 100000000 -m POST -t 5s -f ./bombardier/payload.json -H "Content-Type: application/json" http://127.0.0.1:8080/create
 
 ### Prometheus
