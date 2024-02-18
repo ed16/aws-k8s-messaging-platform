@@ -17,7 +17,7 @@ func main() {
 
 	go func() {
 		server := &http.Server{
-			Addr:         ":8081",
+			Addr:         ":8080",
 			ReadTimeout:  5 * time.Second,
 			WriteTimeout: 10 * time.Second,
 		}
