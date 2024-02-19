@@ -1,4 +1,5 @@
 [![build](https://github.com/ed16/aws-k8s-messaging-platform/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/ed16/aws-k8s-messaging-platform/actions/workflows/ci-cd.yml)
+[![Coverage Status](https://coveralls.io/repos/github/ed16/aws-k8s-messaging-platform/badge.svg)](https://coveralls.io/github/ed16/aws-k8s-messaging-platform)
 
 # Microservices-Based Proof of Concept (POC) Project
 
