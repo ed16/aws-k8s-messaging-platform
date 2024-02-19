@@ -77,7 +77,7 @@ func RunUserCreator() {
 						default:
 							name := generateRandomName()
 
-							err := createUser(name)
+							err := createUser(userServiceURL, name)
 							if err != nil {
 								log.Printf("Error creating user: %v\n", err)
 							}
@@ -129,7 +129,7 @@ func generateRandomName() string {
 	return names[n.Int64()]
 }
 
-func createUser(name string) error {
+func createUser(url, name string) error {
 	data := map[string]string{
 		"name":       name,
 		"created_at": time.Now().Format("2006-01-02"),
@@ -138,7 +138,7 @@ func createUser(name string) error {
 	if err != nil {
 		return err
 	}
-	fullURL := userServiceURL + "/create"
+	fullURL := url + "/create"
 	req, err := http.NewRequest("POST", fullURL, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return err
