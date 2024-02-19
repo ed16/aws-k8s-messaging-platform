@@ -17,6 +17,13 @@ rules:
   - endpoints
   - pods
   verbs: ["get", "list", "watch"]
+- apiGroups:
+  - extensions
+  resources:
+  - ingresses
+  verbs: ["get", "list", "watch"]
+- nonResourceURLs: ["/metrics"]
+  verbs: ["get"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -28,5 +35,5 @@ roleRef:
   name: prometheus
 subjects:
 - kind: ServiceAccount
-  name: prometheus
+  name: default
   namespace: prometheus
