@@ -21,13 +21,26 @@ spec:
             - "--storage.tsdb.path=/prometheus/"
           ports:
             - containerPort: 9090
+          resources:
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+            requests:
+              cpu: "0.5"
+              memory: "512Mi"
           volumeMounts:
             - name: prometheus-config-volume
               mountPath: /etc/prometheus/
+            - name: grafana-api-token-volume
+              mountPath: "/etc/grafana-api-token"
+              readOnly: true
       volumes:
         - name: prometheus-config-volume
           configMap:
             name: prometheus-server-conf
+        - name: grafana-api-token-volume
+          secret:
+            secretName: grafana-api-token
 ---
 apiVersion: v1
 kind: Service
