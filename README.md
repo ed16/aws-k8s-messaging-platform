@@ -49,77 +49,41 @@ This project showcases a microservices architecture, primarily developed using G
 
 This POC is designed to validate the architectural decisions, demonstrating the system's scalability, performance, and reliability, while also providing insights for future optimizations.
 
-Project structure:
-.
-├── .github
-│   └── workflows
-│       └── ci-cd.yml
-├── services
-│   ├── load-generator
-│   │   ├── cmd
-│   │   ├── pkg
-│   │   └── Dockerfile
-│   ├── user-service
-│   │   ├── cmd
-│   │   ├── pkg
-│   │   └── Dockerfile
-│   └── message-service
-│       ├── cmd
-│       ├── pkg
-│       └── Dockerfile
-├── web
-│   ├── load-generator-ui
-│   │   ├── src
-│   │   ├── public
-│   │   ├── package.json
-│   │   └── Dockerfile
-│   └── message-user-ui
-│       ├── src
-│       ├── public
-│       ├── package.json
-│       └── Dockerfile
-├── terraform
-│   ├── main.tf
-│   ├── variables.tf
-│   └── outputs.tf
-├── k8s
-│   ├── load-generator.yml
-│   ├── user-service.yml
-│   └── message-service.yml
-├── go.mod
-├── go.sum
-└── README.md
-
-
 ## Learning path:
 k8s:
-    +implement ingress
-
-    implement local and cloud volume. Use persistentVolumeClaim
-    deploy stateful services for DB: manually and using operators
-
-    Use Helm charts when the landscape become too complex
+  Use Persistent Volumes for Grafana config
+  deploy stateful services for DB: manually and using operators
+  Use Helm charts when the landscape become too complex
 
 ## Useful notes:
 
 Test user-service at localhost:
 
-curl -X POST -H "Content-Type: application/json" -d '{"name": "John Doe", "created_at": "2024-01-23"}' http://localhost:8081/create
-curl http://localhost:8081/get?id=1
-
+  curl -X POST -H "Content-Type: application/json" -d '{"name": "John Doe", "created_at": "2024-01-23"}' http://localhost:8081/create
+  curl http://localhost:8081/get?id=1
 
 Build Docker containers:
 
-docker build -t ed16/aws-k8s-messaging-platform:user-service-latest -f services/user-service/Dockerfile .
-docker build -t ed16/aws-k8s-messaging-platform:load-generator-latest -f services/load-generator/Dockerfile .
-docker push ed16/aws-k8s-messaging-platform:user-service-latest
-docker push ed16/aws-k8s-messaging-platform:load-generator-latest
+  docker build -t ed16/aws-k8s-messaging-platform:user-service-latest -f services/user-service/Dockerfile .
+  docker build -t ed16/aws-k8s-messaging-platform:load-generator-latest -f services/load-generator/Dockerfile .
+  docker push ed16/aws-k8s-messaging-platform:user-service-latest
+  docker push ed16/aws-k8s-messaging-platform:load-generator-latest
 
 minikube ssh -p minikube
 
 find . -type f -name "*.go" -exec sh -c 'echo "File: {}"; echo "----------------"; cat "{}"; echo "\n"' \;
 golangci-lint run
 bombardier -c 64 -n 100000000 -m POST -t 5s -f ./bombardier/payload.json -H "Content-Type: application/json" http://127.0.0.1:8080/create
+
+kubectl rollout restart deployment load-generator
+kubectl rollout restart deployment user-service 
+
+OTLP/gRPC endpoint: grafana-k8s-monitoring-grafana-agent.default.svc.cluster.local:4317
+
+OTLP/HTTP endpoint: grafana-k8s-monitoring-grafana-agent.default.svc.cluster.local:4318
+
+Zipkin endpoint: grafana-k8s-monitoring-grafana-agent.default.svc.cluster.local:9411
+
 
 ### Prometheus
 minikube service prometheus-service -n prometheus
@@ -159,7 +123,12 @@ http://prometheus-service.prometheus.svc.cluster.local:9090
 ## Deploy from zero
 minikube start
 minikube addons enable ingress
+kubectl create secret generic grafana-api-token --from-literal=apiToken='<Your Grafana.com API Token>' -n prometheus
 find k8s -name '*.yaml' | xargs -I {} kubectl apply -f {}
+helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
+helm repo update
+helm install opentelemetry-collector open-telemetry/opentelemetry-collector --set mode=daemonset
+
 kubectl get all
 kubectl get all -n prometheus
 kubectl get all -n grafana
