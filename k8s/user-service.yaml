@@ -27,10 +27,6 @@ spec:
           limits:
             memory: "128Mi"
             cpu: "500m"
-        env:
-          # Example environment variable, you can add more or remove if not needed
-          - name: SOME_ENV_VARIABLE
-            value: ""
 
 ---
 

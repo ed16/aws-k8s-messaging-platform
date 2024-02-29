@@ -84,6 +84,11 @@ OTLP/HTTP endpoint: grafana-k8s-monitoring-grafana-agent.default.svc.cluster.loc
 
 Zipkin endpoint: grafana-k8s-monitoring-grafana-agent.default.svc.cluster.local:9411
 
+Vertical Pod Autoscaler
+https://github.com/kubernetes/autoscaler/tree/master/vertical-pod-autoscaler#installation
+
+Metrics Server (required for Horisontal Pods Autoscaler)
+https://github.com/kubernetes-sigs/metrics-server?tab=readme-ov-file#installation
 
 ### Prometheus
 minikube service prometheus-service -n prometheus
@@ -132,3 +137,8 @@ helm install opentelemetry-collector open-telemetry/opentelemetry-collector --se
 kubectl get all
 kubectl get all -n prometheus
 kubectl get all -n grafana
+
+
+
+
+curl -I http://minikube.local/load-generator/SetCreateUsersConnections?c=0
