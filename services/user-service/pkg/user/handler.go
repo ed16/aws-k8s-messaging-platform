@@ -30,6 +30,7 @@ func InitDB() {
 	connStr := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable", host, dbUser, dbPassword, dbName)
 
 	db, err = sql.Open("postgres", connStr)
+
 	if err != nil {
 		log.Fatalf("Failed to connect to the database: %v", err)
 	}
@@ -37,9 +38,23 @@ func InitDB() {
 
 	err = db.Ping()
 	if err != nil {
-		log.Printf("Failed to ping the database: %v", err)
+		fmt.Printf("Failed to ping the database: %v", err)
 	}
 	fmt.Println("Successfully connected to the database")
+	// SQL statement to check if the "users" table exists and create it if not
+	createTableSQL := `
+	CREATE TABLE IF NOT EXISTS users (
+		id SERIAL PRIMARY KEY,
+		name VARCHAR(255) NOT NULL,
+		created_at DATE NOT NULL
+	);`
+
+	_, err = db.Exec(createTableSQL)
+	if err != nil {
+		fmt.Printf("Failed to create the users table: %v", err)
+	} else {
+		fmt.Println("The users table was created successfully, or already exists.")
+	}
 }
 
 // CreateUser creates the user.
