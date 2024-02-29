@@ -129,6 +129,11 @@ http://prometheus-service.prometheus.svc.cluster.local:9090
 minikube start
 minikube addons enable ingress
 kubectl create secret generic grafana-api-token --from-literal=apiToken='<Your Grafana.com API Token>' -n prometheus
+kubectl create secret generic postgres-secret \
+  --from-literal=POSTGRES_USER=user \
+  --from-literal=POSTGRES_PASSWORD=password \
+  --from-literal=POSTGRES_DB=mydatabase
+  
 find k8s -name '*.yaml' | xargs -I {} kubectl apply -f {}
 helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
 helm repo update

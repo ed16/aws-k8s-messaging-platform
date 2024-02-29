@@ -10,6 +10,7 @@ import (
 
 	"github.com/ed16/aws-k8s-messaging-platform/services/user-service/pkg/api"
 	"github.com/ed16/aws-k8s-messaging-platform/services/user-service/pkg/metrics"
+	"github.com/ed16/aws-k8s-messaging-platform/services/user-service/pkg/user"
 	"github.com/shirou/gopsutil/cpu"
 )
 
@@ -31,6 +32,7 @@ func main() {
 		}
 		log.Println(server.ListenAndServe())
 	}()
+	user.InitDB()
 	metrics.RegisterMetrics()
 	go metrics.CollectSystemMetrics()
 	printMetricsEverySecond()
