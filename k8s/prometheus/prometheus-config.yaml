@@ -6,7 +6,7 @@ metadata:
 data:
   prometheus.yml: |
     global:
-      scrape_interval: 15s
+      scrape_interval: 60s
     remote_write:
       - url: https://prometheus-prod-24-prod-eu-west-2.grafana.net/api/prom/push
         basic_auth:
@@ -36,3 +36,24 @@ data:
       - job_name: 'user-service'
         static_configs:
           - targets: ['user-service.default.svc.cluster.local:8080']
+      - job_name: 'kubelet'
+        scheme: http  # Change this from https to http
+        static_configs:
+          - targets: ['user-service.default.svc.cluster.local:8080']
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        kubernetes_sd_configs:
+          - role: endpoints
+        relabel_configs:
+          - action: labelmap
+            regex: __meta_kubernetes_pod_label_(.+)
+          - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+            action: replace
+            target_label: __address__
+            regex: ([^:]+)(?::\d+)?;(\d+)
+            replacement: $1:$2
+          - source_labels: [__meta_kubernetes_namespace]
+            action: replace
+            target_label: kubernetes_namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            action: replace
+            target_label: kubernetes_pod_name
