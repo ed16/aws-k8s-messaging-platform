@@ -26,7 +26,7 @@ func InitDB() {
 	dbUser := os.Getenv("POSTGRES_USER")
 	dbPassword := os.Getenv("POSTGRES_PASSWORD")
 	dbName := os.Getenv("POSTGRES_DB")
-	host := "127.0.0.1"
+	host := "postgres"
 	connStr := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable", host, dbUser, dbPassword, dbName)
 
 	db, err = sql.Open("postgres", connStr)
