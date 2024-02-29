@@ -28,13 +28,11 @@ func InitDB() {
 	dbName := os.Getenv("POSTGRES_DB")
 	host := "postgres.default.svc.cluster.local"
 	connStr := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable", host, dbUser, dbPassword, dbName)
-	fmt.Println("Connecting to the database with connection string: ", connStr)
 	db, err = sql.Open("postgres", connStr)
 
 	if err != nil {
 		log.Fatalf("Failed to connect to the database: %v", err)
 	}
-	defer db.Close()
 
 	err = db.Ping()
 	if err != nil {
@@ -55,6 +53,8 @@ func InitDB() {
 	} else {
 		fmt.Println("The users table was created successfully, or already exists.")
 	}
+	db.SetMaxOpenConns(8)
+	db.SetMaxIdleConns(8)
 }
 
 // CreateUser creates the user.
