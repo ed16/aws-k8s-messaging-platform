@@ -42,8 +42,8 @@ This project showcases a microservices architecture, primarily developed using G
 - **Containerization**: Docker
 - **Orchestration**: Kubernetes
 - **Infrastructure as Code (IaC)**: Terraform
-- **Databases**: MySQL, PostgreSQL, MongoDB, DynamoDB
-- **Message Queues**: RabbitMQ, Apache Kafka, SQS
+- **Databases**: PostgreSQL, MongoDB
+- **Message Queues**: RabbitMQ
 - **Caching**: Redis
 - **CI/CD**: GitHub Actions
 
@@ -93,6 +93,11 @@ kubectl rollout restart deployment prometheus-deployment -n prometheus
 Prometheus server URL for Grafana:
 http://prometheus-service.prometheus.svc.cluster.local:9090
 
+### RabbitMQ
+minikube service rabbitmq
+
+http://127.0.0.1:54169/
+
 ## TODO
 
 1. +Write 2 go services
@@ -106,10 +111,12 @@ http://prometheus-service.prometheus.svc.cluster.local:9090
     1.  Run unit tests
     2.  Build containers
     3.  Run integrational tests
-9.  Horizontal autoscaling of the user-service
-10. Vertical autoscaling of the load-generator
-11. Store users in PostgresDB
-12. Store users in MongoDB
+9.  +Horizontal autoscaling of the user-service
+10. +Vertical autoscaling of the load-generator
+11. +Store users in PostgresDB
+12. +Store users in MongoDB
+13. Place RabbitMQ in between
+14. 
 
 
 ## Deploy from zero
@@ -127,6 +134,9 @@ kubectl create secret generic postgres-secret \
   --from-literal=POSTGRES_DB=mydatabase
 
 kubectl create secret generic mongodb-secret --from-literal=mongo-root-username='username' --from-literal=mongo-root-password='password'
+
+kubectl create secret generic rabbitmq-secrets --from-literal=rabbitmq-username=user --from-literal=rabbitmq-password=password
+
   
 find k8s -name '*.yaml' | xargs -I {} kubectl apply -f {}
 helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
