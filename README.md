@@ -62,6 +62,9 @@ Test user-service at localhost:
   curl -X POST -H "Content-Type: application/json" -d '{"name": "John Doe", "created_at": "2024-01-23"}' http://localhost:8081/create
   curl http://localhost:8081/get?id=1
 
+Execute linter checks:
+golangci-lint run
+
 Build Docker containers, push to the repository, deploy to k8s:
 
 docker build -t ed16/aws-k8s-messaging-platform:user-service-latest -f services/user-service/Dockerfile .
@@ -76,7 +79,7 @@ kubectl rollout restart deployment load-generator
 minikube ssh -p minikube
 
 find . -type f -name "*.go" -exec sh -c 'echo "File: {}"; echo "----------------"; cat "{}"; echo "\n"' \;
-golangci-lint run
+
 bombardier -c 64 -n 100000000 -m POST -t 5s -f ./bombardier/payload.json -H "Content-Type: application/json" http://127.0.0.1:8080/create
 
 
