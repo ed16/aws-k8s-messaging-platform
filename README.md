@@ -58,9 +58,8 @@ k8s:
 ## Useful notes:
 
 Test user-service at localhost:
-
-  curl -X POST -H "Content-Type: application/json" -d '{"name": "John Doe", "created_at": "2024-01-23"}' http://localhost:8081/create
-  curl http://localhost:8081/get?id=1
+curl -X POST -H "Content-Type: application/json" -d '{"name": "John Doe", "created_at": "2024-01-23"}' http://localhost:8081/create
+curl http://localhost:8081/get?id=1
 
 Execute linter checks:
 golangci-lint run
@@ -75,19 +74,10 @@ docker push ed16/aws-k8s-messaging-platform:load-generator-latest
 kubectl rollout restart deployment user-service 
 kubectl rollout restart deployment load-generator
 
-
 minikube ssh -p minikube
 
 find . -type f -name "*.go" -exec sh -c 'echo "File: {}"; echo "----------------"; cat "{}"; echo "\n"' \;
-
 bombardier -c 64 -n 100000000 -m POST -t 5s -f ./bombardier/payload.json -H "Content-Type: application/json" http://127.0.0.1:8080/create
-
-
-OTLP/gRPC endpoint: grafana-k8s-monitoring-grafana-agent.default.svc.cluster.local:4317
-
-OTLP/HTTP endpoint: grafana-k8s-monitoring-grafana-agent.default.svc.cluster.local:4318
-
-Zipkin endpoint: grafana-k8s-monitoring-grafana-agent.default.svc.cluster.local:9411
 
 Vertical Pod Autoscaler
 https://github.com/kubernetes/autoscaler/tree/master/vertical-pod-autoscaler#installation

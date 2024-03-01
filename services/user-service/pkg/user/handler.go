@@ -20,7 +20,7 @@ import (
 const (
 	mongoDBName         = "NewMongoDB"
 	mongoCollectionName = "users"
-	mongoHost           = "mongo.default.svc.cluster.local:27017"
+	mongoHost           = "mongodb.default.svc.cluster.local:27017"
 	postgresHost        = "postgres.default.svc.cluster.local"
 )
 
