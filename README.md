@@ -62,12 +62,16 @@ Test user-service at localhost:
   curl -X POST -H "Content-Type: application/json" -d '{"name": "John Doe", "created_at": "2024-01-23"}' http://localhost:8081/create
   curl http://localhost:8081/get?id=1
 
-Build Docker containers:
+Build Docker containers, push to the repository, deploy to k8s:
 
-  docker build -t ed16/aws-k8s-messaging-platform:user-service-latest -f services/user-service/Dockerfile .
-  docker build -t ed16/aws-k8s-messaging-platform:load-generator-latest -f services/load-generator/Dockerfile .
-  docker push ed16/aws-k8s-messaging-platform:user-service-latest
-  docker push ed16/aws-k8s-messaging-platform:load-generator-latest
+docker build -t ed16/aws-k8s-messaging-platform:user-service-latest -f services/user-service/Dockerfile .
+docker build -t ed16/aws-k8s-messaging-platform:load-generator-latest -f services/load-generator/Dockerfile .
+docker push ed16/aws-k8s-messaging-platform:user-service-latest
+docker push ed16/aws-k8s-messaging-platform:load-generator-latest
+
+kubectl rollout restart deployment user-service 
+kubectl rollout restart deployment load-generator
+
 
 minikube ssh -p minikube
 
@@ -75,8 +79,6 @@ find . -type f -name "*.go" -exec sh -c 'echo "File: {}"; echo "----------------
 golangci-lint run
 bombardier -c 64 -n 100000000 -m POST -t 5s -f ./bombardier/payload.json -H "Content-Type: application/json" http://127.0.0.1:8080/create
 
-kubectl rollout restart deployment load-generator
-kubectl rollout restart deployment user-service 
 
 OTLP/gRPC endpoint: grafana-k8s-monitoring-grafana-agent.default.svc.cluster.local:4317
 
@@ -103,26 +105,18 @@ http://prometheus-service.prometheus.svc.cluster.local:9090
 1. +Write 2 go services
 2. +Wrap into docker containers
 3. +Deploy into minikube
-4. +Test in minikube
-5. +Fix minikube tunnel
-6. +Deploy prometheus and Grafana
-7. +Collect custom metrics - user creation rate
-8. +Display custom metrics in Grafana
-9. Implement rate control function with autoscaling
-   1.  
-10. Web UI 
-   1.  to control the rate of user creation and reading users
-   2.  Display reat rate
-   3.  Display the avarage response time
-11. Each new commit to the main branch - 
+4. +Deploy Prometheus and Grafana
+5. +Collect custom metrics - user creation rate
+6. +Display custom metrics in Grafana
+7. +Implement number of processes control for load-generator
+8. +Each new commit to the main branch (github actions)
     1.  Run unit tests
     2.  Build containers
     3.  Run integrational tests
-    4.  Deploy to k8s (local minikube?)
-12. Autoscaling of the user-service when CPU is higher then something or responce time is higher then something
-13. Autoscaling of the load-generator when it cannot give the desired rate
-14. Implement the queue for the user creation? Probably for some other process
-15. 
+9.  Horizontal autoscaling of the user-service
+10. Vertical autoscaling of the load-generator
+11. Store users in PostgresDB
+12. Store users in MongoDB
 
 
 ## Deploy from zero
@@ -133,6 +127,8 @@ kubectl create secret generic postgres-secret \
   --from-literal=POSTGRES_USER=user \
   --from-literal=POSTGRES_PASSWORD=password \
   --from-literal=POSTGRES_DB=mydatabase
+
+kubectl create secret generic mongodb-secret --from-literal=mongo-root-username='username' --from-literal=mongo-root-password='password'
   
 find k8s -name '*.yaml' | xargs -I {} kubectl apply -f {}
 helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
