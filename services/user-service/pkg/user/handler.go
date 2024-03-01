@@ -20,7 +20,8 @@ import (
 const (
 	mongoDBName         = "NewMongoDB"
 	mongoCollectionName = "users"
-	mongoURI            = "mongodb://mongo.default.svc.cluster.local:27017"
+	mongoHost           = "mongo.default.svc.cluster.local:27017"
+	postgresHost        = "postgres.default.svc.cluster.local"
 )
 
 type user struct {
@@ -38,8 +39,7 @@ func InitDB() {
 	dbUser := os.Getenv("POSTGRES_USER")
 	dbPassword := os.Getenv("POSTGRES_PASSWORD")
 	dbName := os.Getenv("POSTGRES_DB")
-	host := "postgres.default.svc.cluster.local"
-	connStr := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable", host, dbUser, dbPassword, dbName)
+	connStr := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable", postgresHost, dbUser, dbPassword, dbName)
 	db, err = sql.Open("postgres", connStr)
 
 	if err != nil {
@@ -48,9 +48,9 @@ func InitDB() {
 
 	err = db.Ping()
 	if err != nil {
-		fmt.Printf("Failed to ping the database: %v", err)
+		log.Printf("Failed to ping the database: %v", err)
 	}
-	fmt.Println("Successfully connected to the database")
+	log.Println("Successfully connected to the database")
 	// SQL statement to check if the "users" table exists and create it if not
 	createTableSQL := `
 	CREATE TABLE IF NOT EXISTS users (
@@ -61,9 +61,9 @@ func InitDB() {
 
 	_, err = db.Exec(createTableSQL)
 	if err != nil {
-		fmt.Printf("Failed to create the users table: %v", err)
+		log.Printf("Failed to create the users table: %v", err)
 	} else {
-		fmt.Println("The users table was created successfully, or already exists.")
+		log.Println("The users table was created successfully, or already exists.")
 	}
 	db.SetMaxOpenConns(8)
 	db.SetMaxIdleConns(8)
@@ -71,17 +71,30 @@ func InitDB() {
 
 // InitMongoDB initializes the MongoDB connection.
 func InitMongoDB() {
+	// Retrieve MongoDB credentials from environment variables
+	mongoUsername := os.Getenv("MONGO_INITDB_ROOT_USERNAME")
+	mongoPassword := os.Getenv("MONGO_INITDB_ROOT_PASSWORD")
+
+	// Ensure both username and password are present
+	if mongoUsername == "" || mongoPassword == "" {
+		log.Fatal("MongoDB credentials are not set in environment variables")
+	}
+
+	// Construct the MongoDB URI using the credentials and constant host address
+	mongoURI := fmt.Sprintf("mongodb://%s:%s@%s", mongoUsername, mongoPassword, mongoHost)
+
+	// Connect to MongoDB using the constructed URI
 	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(mongoURI))
 	if err != nil {
 		log.Fatalf("Failed to connect to MongoDB: %v", err)
 	}
 
 	// Ping the primary
-	if err := client.Ping(context.Background(), nil); err != nil {
+	if err = client.Ping(context.Background(), nil); err != nil {
 		log.Fatalf("Failed to ping MongoDB: %v", err)
 	}
 
-	fmt.Println("Successfully connected to MongoDB")
+	log.Println("Successfully connected to MongoDB")
 	mongoClient = client
 }
 

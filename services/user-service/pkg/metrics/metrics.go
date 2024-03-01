@@ -49,6 +49,7 @@ func RegisterMetrics() {
 	prometheus.MustRegister(HTTPGetRequestsTotal)
 	prometheus.MustRegister(SystemCPUUsage)
 	prometheus.MustRegister(SystemMemoryUsage)
+	log.Println("Metrics registered successfully")
 }
 
 // CollectSystemMetrics collects and updates system-level metrics.

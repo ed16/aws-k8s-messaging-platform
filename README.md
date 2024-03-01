@@ -123,7 +123,12 @@ http://prometheus-service.prometheus.svc.cluster.local:9090
 
 
 ## Deploy from zero
-minikube start
+brew install docker
+brew install colima
+brew install kubernetes-cli
+brew install minikube
+colima start --cpu 8 --memory 16
+minikube start --driver=docker --cpus=4 --memory=8192 --disk-size=30g
 minikube addons enable ingress
 kubectl create secret generic grafana-api-token --from-literal=apiToken='<Your Grafana.com API Token>' -n prometheus
 kubectl create secret generic postgres-secret \
