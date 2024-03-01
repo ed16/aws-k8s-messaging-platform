@@ -33,6 +33,7 @@ func main() {
 		log.Println(server.ListenAndServe())
 	}()
 	user.InitDB()
+	user.InitMongoDB()
 	metrics.RegisterMetrics()
 	go metrics.CollectSystemMetrics()
 	printMetricsEverySecond()
