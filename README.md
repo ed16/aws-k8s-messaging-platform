@@ -151,3 +151,5 @@ kubectl get all -n grafana
 
 
 curl -I http://minikube.local/load-generator/SetCreateUsersConnections?c=0
+
+<!-- Security scan triggered at 2025-09-02 21:06:29 -->
